@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://cbjg7djo286vw"]
+
+[ext_resource type="Script" uid="uid://bvyddwe1pisyq" path="res://player.gd" id="1_0xm2m"]
+[ext_resource type="Texture2D" uid="uid://cpvruses57bga" path="res://icon.svg" id="1_ig7tw"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_n57nd"]
+radius = 45.0
+height = 120.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_h18gq"]
+radius = 60.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h18gq"]
+size = Vector2(800, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bixc1"]
+size = Vector2(120, 40)
+
+[node name="Main" type="Node2D" unique_id=1554111558]
+
+[node name="Player" type="CharacterBody2D" parent="." unique_id=91328187]
+position = Vector2(1, 195)
+script = ExtResource("1_0xm2m")
+
+[node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=251968947]
+texture = ExtResource("1_ig7tw")
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=216799481]
+position = Vector2(0, -80)
+zoom = Vector2(0.8, 0.8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=897637452]
+shape = SubResource("CapsuleShape2D_n57nd")
+
+[node name="BoostCheckArea" type="Area2D" parent="Player" unique_id=141851211]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/BoostCheckArea" unique_id=2096517361]
+shape = SubResource("CircleShape2D_h18gq")
+
+[node name="Floor" type="StaticBody2D" parent="." unique_id=994201583]
+position = Vector2(0, 302)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=428580192]
+shape = SubResource("RectangleShape2D_h18gq")
+
+[node name="FloorVisual" type="Polygon2D" parent="Floor" unique_id=776074667]
+color = Color(0.28485027, 0.28485027, 0.28485027, 1)
+polygon = PackedVector2Array(-400, -20, 400, -20, 400, 20, -400, 20)
+uv = PackedVector2Array(-400, -20, 400, -20, 400, 20, -400, 20)
+
+[node name="HeightLabel" type="Label" parent="." unique_id=590642704]
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Platform1" type="StaticBody2D" parent="." unique_id=4367497 groups=["boost_platform"]]
+position = Vector2(-83, -123)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform1" unique_id=1436032618]
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform1Visual" type="Polygon2D" parent="Platform1" unique_id=793111009]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
