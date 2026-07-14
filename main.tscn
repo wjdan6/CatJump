@@ -10,11 +10,23 @@ height = 120.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_h18gq"]
 radius = 60.0
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_n57nd"]
+size = Vector2(90, 14.375)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ursyd"]
+size = Vector2(90, 10)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3sk84"]
+size = Vector2(90, 10)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_h18gq"]
 size = Vector2(800, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bixc1"]
-size = Vector2(120, 40)
+size = Vector2(120, 38)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xi27r"]
+size = Vector2(120, 2)
 
 [node name="Main" type="Node2D" unique_id=1554111558]
 
@@ -38,6 +50,24 @@ collision_mask = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player/BoostCheckArea" unique_id=2096517361]
 shape = SubResource("CircleShape2D_h18gq")
 
+[node name="PerfectJumpArea" type="Area2D" parent="Player" unique_id=609381657]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/PerfectJumpArea" unique_id=260733238]
+position = Vector2(-1, -51.5)
+shape = SubResource("RectangleShape2D_n57nd")
+
+[node name="GoodJumpArea" type="Area2D" parent="Player" unique_id=503601231]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/GoodJumpArea" unique_id=823149266]
+position = Vector2(-1, -64)
+shape = SubResource("RectangleShape2D_ursyd")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Player/GoodJumpArea" unique_id=580529284]
+position = Vector2(-1, -39)
+shape = SubResource("RectangleShape2D_3sk84")
+
 [node name="Floor" type="StaticBody2D" parent="." unique_id=994201583]
 position = Vector2(0, 302)
 
@@ -58,9 +88,17 @@ position = Vector2(-83, -123)
 collision_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platform1" unique_id=1436032618]
+position = Vector2(0, 1)
 shape = SubResource("RectangleShape2D_bixc1")
 
 [node name="Platform1Visual" type="Polygon2D" parent="Platform1" unique_id=793111009]
 color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
 polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
 uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform1" unique_id=1005831342]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform1/BoostSurface" unique_id=1513498410]
+position = Vector2(0, -9)
+shape = SubResource("RectangleShape2D_xi27r")
