@@ -1,7 +1,91 @@
 [gd_scene format=3 uid="uid://cbjg7djo286vw"]
 
 [ext_resource type="Script" uid="uid://bvyddwe1pisyq" path="res://player.gd" id="1_0xm2m"]
-[ext_resource type="Texture2D" uid="uid://cpvruses57bga" path="res://icon.svg" id="1_ig7tw"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_idle.png" id="2_idle"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_jump_prepare.png" id="3_jump_prepare"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_rise.png" id="4_rise"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_apex.png" id="5_apex"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_fall.png" id="6_fall"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_boost_contact.png" id="7_boost_contact"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_boost_pull.png" id="8_boost_pull"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_boost_push.png" id="9_boost_push"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_miss.png" id="10_miss"]
+[ext_resource type="Texture2D" path="res://assets/player/cat_land.png" id="11_land"]
+[ext_resource type="PackedScene" path="res://platform.tscn" id="12_platform"]
+[ext_resource type="Script" path="res://platform_generator.gd" id="13_platform_generator"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_player"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_apex")
+}],
+"loop": false,
+"name": &"apex",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_boost_contact")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_boost_pull")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_boost_push")
+}],
+"loop": false,
+"name": &"boost",
+"speed": 18.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_fall")
+}],
+"loop": true,
+"name": &"fall",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_idle")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_jump_prepare")
+}],
+"loop": false,
+"name": &"jump_prepare",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("11_land")
+}],
+"loop": false,
+"name": &"land",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("10_miss")
+}],
+"loop": false,
+"name": &"miss",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_rise")
+}],
+"loop": true,
+"name": &"rise",
+"speed": 5.0
+}]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_n57nd"]
 radius = 45.0
@@ -19,14 +103,36 @@ size = Vector2(90, 10)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3sk84"]
 size = Vector2(90, 10)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_miss"]
+size = Vector2(90, 20)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_h18gq"]
 size = Vector2(800, 40)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_background"]
+bg_color = Color(0.0666667, 0.0862745, 0.117647, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.345098, 0.427451, 0.47451, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_fill"]
+bg_color = Color(0.105882, 0.807843, 0.658824, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bixc1"]
 size = Vector2(120, 38)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xi27r"]
-size = Vector2(120, 2)
+size = Vector2(120, 20)
 
 [node name="Main" type="Node2D" unique_id=1554111558]
 
@@ -34,8 +140,11 @@ size = Vector2(120, 2)
 position = Vector2(1, 195)
 script = ExtResource("1_0xm2m")
 
-[node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=251968947]
-texture = ExtResource("1_ig7tw")
+[node name="Sprite2D" type="AnimatedSprite2D" parent="Player" unique_id=251968947]
+texture_filter = 1
+sprite_frames = SubResource("SpriteFrames_player")
+animation = &"idle"
+autoplay = "idle"
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=216799481]
 position = Vector2(0, -80)
@@ -68,6 +177,17 @@ shape = SubResource("RectangleShape2D_ursyd")
 position = Vector2(-1, -39)
 shape = SubResource("RectangleShape2D_3sk84")
 
+[node name="MissJumpArea" type="Area2D" parent="Player" unique_id=1345743203]
+collision_mask = 2
+
+[node name="EarlyMissCollisionShape2D" type="CollisionShape2D" parent="Player/MissJumpArea" unique_id=1312634493]
+position = Vector2(-1, -79)
+shape = SubResource("RectangleShape2D_miss")
+
+[node name="LateMissCollisionShape2D" type="CollisionShape2D" parent="Player/MissJumpArea" unique_id=1116546984]
+position = Vector2(-1, -24)
+shape = SubResource("RectangleShape2D_miss")
+
 [node name="Floor" type="StaticBody2D" parent="." unique_id=994201583]
 position = Vector2(0, 302)
 
@@ -82,6 +202,100 @@ uv = PackedVector2Array(-400, -20, 400, -20, 400, 20, -400, 20)
 [node name="HeightLabel" type="Label" parent="." unique_id=590642704]
 offset_right = 40.0
 offset_bottom = 23.0
+
+[node name="StaminaUI" type="CanvasLayer" parent="." unique_id=592304468]
+
+[node name="StaminaBar" type="ProgressBar" parent="StaminaUI" unique_id=1535834402]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 260.0
+offset_bottom = 40.0
+theme_override_styles/background = SubResource("StyleBoxFlat_stamina_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_stamina_fill")
+max_value = 12.0
+value = 12.0
+show_percentage = false
+
+[node name="StaminaValueLabel" type="Label" parent="StaminaUI" unique_id=477626335]
+offset_left = 20.0
+offset_top = 45.0
+offset_right = 260.0
+offset_bottom = 65.0
+theme_override_colors/font_color = Color(0.803922, 0.901961, 0.886275, 1)
+theme_override_font_sizes/font_size = 14
+text = "100 / 100"
+horizontal_alignment = 2
+
+[node name="ComboLabel" type="Label" parent="StaminaUI" unique_id=906409522]
+offset_left = 20.0
+offset_top = 70.0
+offset_right = 260.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(0.105882, 0.807843, 0.658824, 1)
+theme_override_font_sizes/font_size = 16
+text = "COMBO 0"
+horizontal_alignment = 2
+
+[node name="VelocityLabel" type="Label" parent="StaminaUI" unique_id=1950210179]
+offset_left = 20.0
+offset_top = 95.0
+offset_right = 260.0
+offset_bottom = 117.0
+theme_override_font_sizes/font_size = 14
+text = "X: 0 | Y: 0"
+
+[node name="JudgmentLabel" type="Label" parent="StaminaUI" unique_id=1674039771]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -30.0
+offset_right = 180.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0.08, 0.1, 0.14, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 32
+text = "PERFECT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameOverOverlay" type="ColorRect" parent="StaminaUI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.04, 0.06, 0.82)
+
+[node name="CenterContainer" type="CenterContainer" parent="StaminaUI/GameOverOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GameOverContent" type="VBoxContainer" parent="StaminaUI/GameOverOverlay/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="StaminaUI/GameOverOverlay/CenterContainer/GameOverContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "GAME OVER"
+horizontal_alignment = 1
+
+[node name="RetryButton" type="Button" parent="StaminaUI/GameOverOverlay/CenterContainer/GameOverContent"]
+custom_minimum_size = Vector2(180, 48)
+layout_mode = 2
+text = "RETRY"
 
 [node name="Platform1" type="StaticBody2D" parent="." unique_id=4367497 groups=["boost_platform"]]
 position = Vector2(-83, -123)
@@ -100,5 +314,331 @@ uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
 collision_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platform1/BoostSurface" unique_id=1513498410]
-position = Vector2(0, -9)
 shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform2" type="StaticBody2D" parent="." unique_id=1495663397 groups=["boost_platform"]]
+position = Vector2(95, -390)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform2" unique_id=1993945838]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform2Visual" type="Polygon2D" parent="Platform2" unique_id=569378361]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform2" unique_id=1123497998]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform2/BoostSurface" unique_id=889698518]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform3" type="StaticBody2D" parent="." unique_id=1867824953 groups=["boost_platform"]]
+position = Vector2(-120, -650)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform3" unique_id=1049443421]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform3Visual" type="Polygon2D" parent="Platform3" unique_id=555460573]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform3" unique_id=565749330]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform3/BoostSurface" unique_id=119821743]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform4" type="StaticBody2D" parent="." unique_id=1505134997 groups=["boost_platform"]]
+position = Vector2(90, -910)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform4" unique_id=1399412122]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform4Visual" type="Polygon2D" parent="Platform4" unique_id=522845384]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform4" unique_id=602454153]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform4/BoostSurface" unique_id=373060870]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform5" type="StaticBody2D" parent="." unique_id=580472621 groups=["boost_platform"]]
+position = Vector2(-100, -1170)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform5" unique_id=1724884028]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform5Visual" type="Polygon2D" parent="Platform5" unique_id=574769531]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform5" unique_id=1307856204]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform5/BoostSurface" unique_id=1560844848]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform6" type="StaticBody2D" parent="." unique_id=1915000544 groups=["boost_platform"]]
+position = Vector2(110, -1430)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform6" unique_id=1120279924]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform6Visual" type="Polygon2D" parent="Platform6" unique_id=284884159]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform6" unique_id=155538488]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform6/BoostSurface" unique_id=1857712818]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform7" type="StaticBody2D" parent="." unique_id=927278977 groups=["boost_platform"]]
+position = Vector2(-100, -1690)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform7" unique_id=1887889742]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform7Visual" type="Polygon2D" parent="Platform7" unique_id=731273230]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform7" unique_id=996846235]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform7/BoostSurface" unique_id=1338310504]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform8" type="StaticBody2D" parent="." unique_id=781985688 groups=["boost_platform"]]
+position = Vector2(90, -1950)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform8" unique_id=1263743553]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform8Visual" type="Polygon2D" parent="Platform8" unique_id=1207643030]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform8" unique_id=1054013777]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform8/BoostSurface" unique_id=837268928]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform9" type="StaticBody2D" parent="." unique_id=1777668632 groups=["boost_platform"]]
+position = Vector2(-120, -2210)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform9" unique_id=1069389511]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform9Visual" type="Polygon2D" parent="Platform9" unique_id=60594642]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform9" unique_id=151804833]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform9/BoostSurface" unique_id=688321616]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform10" type="StaticBody2D" parent="." unique_id=450004554 groups=["boost_platform"]]
+position = Vector2(110, -2470)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform10" unique_id=1085316368]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform10Visual" type="Polygon2D" parent="Platform10" unique_id=1152357647]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform10" unique_id=1715258448]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform10/BoostSurface" unique_id=1930706866]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform11" type="StaticBody2D" parent="." unique_id=497566978 groups=["boost_platform"]]
+position = Vector2(-90, -2730)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform11" unique_id=1065831941]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform11Visual" type="Polygon2D" parent="Platform11" unique_id=94753266]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform11" unique_id=950815019]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform11/BoostSurface" unique_id=108334171]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform12" type="StaticBody2D" parent="." unique_id=471673592 groups=["boost_platform"]]
+position = Vector2(100, -2990)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform12" unique_id=1872241722]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform12Visual" type="Polygon2D" parent="Platform12" unique_id=1862869615]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform12" unique_id=876965409]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform12/BoostSurface" unique_id=633966639]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform13" type="StaticBody2D" parent="." unique_id=1558358739 groups=["boost_platform"]]
+position = Vector2(-130, -3250)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform13" unique_id=1090608174]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform13Visual" type="Polygon2D" parent="Platform13" unique_id=1129957173]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform13" unique_id=646373010]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform13/BoostSurface" unique_id=305726357]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform14" type="StaticBody2D" parent="." unique_id=734133583 groups=["boost_platform"]]
+position = Vector2(80, -3510)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform14" unique_id=2062637456]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform14Visual" type="Polygon2D" parent="Platform14" unique_id=1901357618]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform14" unique_id=589581192]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform14/BoostSurface" unique_id=1590630391]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform15" type="StaticBody2D" parent="." unique_id=1219965327 groups=["boost_platform"]]
+position = Vector2(-110, -3770)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform15" unique_id=1837367129]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform15Visual" type="Polygon2D" parent="Platform15" unique_id=604741660]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform15" unique_id=1267341532]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform15/BoostSurface" unique_id=1070692827]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform16" type="StaticBody2D" parent="." unique_id=2056459443 groups=["boost_platform"]]
+position = Vector2(100, -4030)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform16" unique_id=1824589240]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform16Visual" type="Polygon2D" parent="Platform16" unique_id=478251664]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform16" unique_id=27274305]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform16/BoostSurface" unique_id=266350054]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform17" type="StaticBody2D" parent="." unique_id=1783783269 groups=["boost_platform"]]
+position = Vector2(-90, -4290)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform17" unique_id=927972200]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform17Visual" type="Polygon2D" parent="Platform17" unique_id=110443575]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform17" unique_id=484727438]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform17/BoostSurface" unique_id=2096653511]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="Platform18" type="StaticBody2D" parent="." unique_id=414442450 groups=["boost_platform"]]
+position = Vector2(120, -4550)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform18" unique_id=469228305]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_bixc1")
+
+[node name="Platform18Visual" type="Polygon2D" parent="Platform18" unique_id=37467512]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="Platform18" unique_id=203896513]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform18/BoostSurface" unique_id=582969147]
+shape = SubResource("RectangleShape2D_xi27r")
+
+[node name="PlatformGenerator" type="Node2D" parent="."]
+script = ExtResource("13_platform_generator")
+platform_scene = ExtResource("12_platform")

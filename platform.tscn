@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_platform_body"]
+size = Vector2(120, 38)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boost_surface"]
+size = Vector2(120, 20)
+
+[node name="Platform" type="StaticBody2D" groups=["boost_platform"]]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_platform_body")
+
+[node name="PlatformVisual" type="Polygon2D" parent="."]
+color = Color(4.6205523e-06, 0.7778507, 0.8425179, 1)
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+uv = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+
+[node name="BoostSurface" type="Area2D" parent="."]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BoostSurface"]
+shape = SubResource("RectangleShape2D_boost_surface")
