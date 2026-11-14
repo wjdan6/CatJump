@@ -1,13 +1,13 @@
 extends CharacterBody2D
 
-const GAME_OVER_POSITION_EPSILON: float = 1.0
+const RunResults = preload("res://run_results.gd")
 
 enum JumpJudgment {
 	PERFECT,
 	GOOD,
 }
 
-@export var move_speed: float = 600.0
+@export var move_speed: float = 480.0
 @export var jump_power: float = 1000.0
 @export var rise_gravity: float = 1300.0
 @export var fall_gravity: float = 1500.0
@@ -16,11 +16,11 @@ enum JumpJudgment {
 @export_category("Acceleration Jump")
 @export var perfect_jump_power: float = 1250.0
 @export var good_jump_power: float = 1050.0
-@export var perfect_side_impulse: float = 300.0
-@export var good_side_impulse: float = 180.0
+@export var perfect_side_impulse: float = 240.0
+@export var good_side_impulse: float = 145.0
 @export var max_air_speed: float = 3000.0
-@export var air_acceleration: float = 8000.0
-@export var air_deceleration: float = 600.0
+@export var air_acceleration: float = 4200.0
+@export var air_deceleration: float = 500.0
 
 @export_category("Stamina")
 @export var max_stamina: float = 100.0
@@ -46,11 +46,11 @@ enum JumpJudgment {
 @export var perfect_combo_acceleration_gain: float = 1.0
 @export var good_combo_acceleration_gain: float = 0.5
 @export var jump_power_per_combo_acceleration: float = 50.0
-@export var side_impulse_per_combo_acceleration: float = 20.0
-@export var move_speed_per_combo_acceleration: float = 40.0
+@export var side_impulse_per_combo_acceleration: float = 16.0
+@export var move_speed_per_combo_acceleration: float = 32.0
 
-@export_category("Game Loop")
-@export var game_over_fall_distance: float = 4427.0
+@export_category("Camera")
+@export_range(0.0, 0.95, 0.05) var camera_fall_follow_ratio: float = 0.70
 
 @onready var perfect_jump_area: Area2D = $PerfectJumpArea
 @onready var good_jump_area: Area2D = $GoodJumpArea
@@ -59,10 +59,13 @@ enum JumpJudgment {
 @onready var stamina_value_label: Label = $"../StaminaUI/StaminaValueLabel"
 @onready var combo_label: Label = $"../StaminaUI/ComboLabel"
 @onready var velocity_label: Label = $"../StaminaUI/VelocityLabel"
+@onready var coin_label: Label = $"../StaminaUI/CoinLabel"
 @onready var judgment_label: Label = $"../StaminaUI/JudgmentLabel"
 @onready var player_sprite: AnimatedSprite2D = $Sprite2D
-@onready var game_over_overlay: Control = $"../StaminaUI/GameOverOverlay"
-@onready var retry_button: Button = $"../StaminaUI/GameOverOverlay/CenterContainer/GameOverContent/RetryButton"
+@onready var run_results: RunResults = $"../StaminaUI/GameOverOverlay"
+@onready var camera: Camera2D = $Camera2D
+@onready var body_collision: CollisionShape2D = $CollisionShape2D
+@onready var body_shape: CapsuleShape2D = body_collision.shape as CapsuleShape2D
 
 var used_boost_surfaces: Array[Area2D] = []
 var current_stamina: float = 0.0
@@ -74,15 +77,24 @@ var run_started: bool = false
 var is_game_over: bool = false
 var start_height_y: float = 0.0
 var highest_reached_y: float = 0.0
+var peak_combo_count: int = 0
+var collected_coins: int = 0
+var camera_vertical_offset: float = 0.0
 
 func _ready() -> void:
+	max_stamina += run_results.get_stamina_bonus()
+	air_acceleration *= run_results.get_air_acceleration_multiplier()
 	current_stamina = max_stamina
 	_update_stamina_ui()
 	_update_combo_ui()
 	_update_velocity_ui()
 	_play_player_animation(&"idle")
-	game_over_overlay.hide()
-	retry_button.pressed.connect(restart_game)
+	run_results.retry_requested.connect(restart_game)
+	camera_vertical_offset = camera.position.y
+	var initial_camera_position := camera.global_position
+	camera.top_level = true
+	camera.global_position = initial_camera_position
+	_update_camera(global_position.y)
 
 func _physics_process(delta: float) -> void:
 	if is_game_over:
@@ -108,8 +120,10 @@ func _physics_process(delta: float) -> void:
 		else:
 			try_boost_jump(input_dir)
 
+	var previous_y := global_position.y
 	move_and_slide()
-	_update_game_over_state()
+	_keep_player_in_view_horizontally()
+	_update_game_over_state(global_position.y - previous_y)
 	_update_player_animation(delta, was_on_floor_before_move)
 	_update_velocity_ui()
 
@@ -140,6 +154,14 @@ func _update_horizontal_movement(input_dir: float, delta: float) -> void:
 
 func get_combo_move_speed() -> float:
 	return move_speed + combo_acceleration * move_speed_per_combo_acceleration
+
+func collect_coin() -> bool:
+	if not run_started or is_game_over:
+		return false
+
+	collected_coins += 1
+	coin_label.text = "COINS %d" % collected_coins
+	return true
 
 func _update_stamina(delta: float) -> void:
 	current_stamina = clampf(current_stamina, 0.0, max_stamina)
@@ -214,6 +236,7 @@ func recover_stamina(stamina_recovery: float) -> float:
 
 func increase_combo(judgment: int) -> void:
 	combo_count = min(combo_count + 1, max_combo_count)
+	peak_combo_count = maxi(peak_combo_count, combo_count)
 	var acceleration_gain := perfect_combo_acceleration_gain if judgment == JumpJudgment.PERFECT else good_combo_acceleration_gain
 	combo_acceleration = minf(combo_acceleration + acceleration_gain, max_combo_acceleration)
 	_update_combo_ui()
@@ -335,22 +358,36 @@ func _clear_exited_boost_surfaces() -> void:
 func is_surface_in_jump_areas(surface: Area2D) -> bool:
 	return perfect_jump_area.get_overlapping_areas().has(surface) or good_jump_area.get_overlapping_areas().has(surface) or miss_jump_area.get_overlapping_areas().has(surface)
 
-func _update_game_over_state() -> void:
+func _update_game_over_state(vertical_travel: float) -> void:
 	if not run_started:
+		_update_camera(global_position.y)
 		return
 
 	highest_reached_y = minf(highest_reached_y, global_position.y)
-	var climbed_height := start_height_y - highest_reached_y
+	var follow_y := camera.global_position.y - camera_vertical_offset
+	# Let the cat regain the camera's height before scrolling upward again.
+	follow_y += maxf(vertical_travel, 0.0) * camera_fall_follow_ratio
+	_update_camera(minf(follow_y, global_position.y))
 
-	if climbed_height < game_over_fall_distance:
-		var reached_start_height := global_position.y >= start_height_y - GAME_OVER_POSITION_EPSILON
-		if velocity.y >= 0.0 and (is_on_floor() or reached_start_height):
-			trigger_game_over()
-		return
-
-	var game_over_y := highest_reached_y + game_over_fall_distance
-	if velocity.y >= 0.0 and global_position.y >= game_over_y:
+	if is_on_floor() or (velocity.y > 0.0 and _is_below_viewport()):
 		trigger_game_over()
+
+func _update_camera(follow_y: float) -> void:
+	camera.global_position.y = follow_y + camera_vertical_offset
+	camera.force_update_scroll()
+
+func _keep_player_in_view_horizontally() -> void:
+	var view_half_width := get_viewport_rect().size.x / (2.0 * camera.zoom.x)
+	var travel_limit := maxf(view_half_width - body_shape.radius, 0.0)
+	var camera_x := camera.get_screen_center_position().x
+	var bounded_x := clampf(global_position.x, camera_x - travel_limit, camera_x + travel_limit)
+	if bounded_x != global_position.x:
+		global_position.x = bounded_x
+		velocity.x = 0.0
+
+func _is_below_viewport() -> bool:
+	var body_top := body_collision.get_global_transform_with_canvas() * Vector2(0.0, -body_shape.height * 0.5)
+	return body_top.y >= get_viewport_rect().end.y
 
 func trigger_game_over() -> void:
 	if is_game_over:
@@ -359,8 +396,7 @@ func trigger_game_over() -> void:
 	is_game_over = true
 	velocity = Vector2.ZERO
 	reset_combo()
-	game_over_overlay.show()
-	retry_button.grab_focus()
+	run_results.show_result(start_height_y - highest_reached_y, peak_combo_count, collected_coins)
 
 func restart_game() -> void:
 	get_tree().reload_current_scene()

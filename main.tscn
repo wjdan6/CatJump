@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" path="res://assets/player/cat_land.png" id="11_land"]
 [ext_resource type="PackedScene" path="res://platform.tscn" id="12_platform"]
 [ext_resource type="Script" path="res://platform_generator.gd" id="13_platform_generator"]
+[ext_resource type="Script" path="res://run_results.gd" id="14_run_results"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_player"]
 animations = [{
@@ -244,6 +245,15 @@ offset_bottom = 117.0
 theme_override_font_sizes/font_size = 14
 text = "X: 0 | Y: 0"
 
+[node name="CoinLabel" type="Label" parent="StaminaUI"]
+offset_left = 20.0
+offset_top = 120.0
+offset_right = 260.0
+offset_bottom = 142.0
+theme_override_colors/font_color = Color(1, 0.84, 0.2, 1)
+theme_override_font_sizes/font_size = 16
+text = "COINS 0"
+
 [node name="JudgmentLabel" type="Label" parent="StaminaUI" unique_id=1674039771]
 visible = false
 anchors_preset = 8
@@ -272,6 +282,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.03, 0.04, 0.06, 0.82)
+script = ExtResource("14_run_results")
 
 [node name="CenterContainer" type="CenterContainer" parent="StaminaUI/GameOverOverlay"]
 layout_mode = 1
